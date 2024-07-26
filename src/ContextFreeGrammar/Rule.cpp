@@ -128,6 +128,10 @@ string Rule::to_string() const{
     return result;
 }
 
+/**
+ * Mutator for the rule type field.
+ * @param ruleType New rule type.
+ */
 void Rule::setType(RuleType ruleType){
     this->type = ruleType;
 }
