@@ -5,6 +5,13 @@
 #include "CYKParser.h"
 #include "PartialParseList.h"
 
+/**
+ * Constructs an array of possible parse trees for a given sentence according to the given grammar. CYK parser
+ * is based on a dynamic programming algorithm.
+ * @param cfg Context free grammar used in parsing.
+ * @param sentence Sentence to be parsed.
+ * @return Array list of possible parse trees for the given sentence.
+ */
 vector<ParseTree*> CYKParser::parse(const ContextFreeGrammar& cfg, Sentence* sentence){
     int i, j, k, x, y;
     PartialParseList table[sentence->wordCount()][sentence->wordCount()];

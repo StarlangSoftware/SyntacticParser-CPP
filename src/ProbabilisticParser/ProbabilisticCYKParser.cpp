@@ -5,6 +5,13 @@
 #include "ProbabilisticCYKParser.h"
 #include "../SyntacticParser/PartialParseList.h"
 
+/**
+ * Constructs an array of most probable parse trees for a given sentence according to the given grammar. CYK parser
+ * is based on a dynamic programming algorithm.
+ * @param pCfg Probabilistic context free grammar used in parsing.
+ * @param sentence Sentence to be parsed.
+ * @return Array list of most probable parse trees for the given sentence.
+ */
 vector<ParseTree*> ProbabilisticCYKParser::parse(const ProbabilisticContextFreeGrammar& pCfg, Sentence* sentence){
     int i, j, k, x, y;
     PartialParseList table[sentence->wordCount()][sentence->wordCount()];

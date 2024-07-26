@@ -10,6 +10,11 @@
 
 using namespace std;
 
+/**
+ * Reads the lexicon for the grammar. Each line consists of two items, the terminal symbol and the frequency of
+ * that symbol. The method fills the dictionary counter hash map according to this data.
+ * @param dictionaryFileName File name of the lexicon.
+ */
 void ContextFreeGrammar::readDictionary(const string& dictionaryFileName) {
     string line;
     ifstream inputFile;
@@ -22,6 +27,13 @@ void ContextFreeGrammar::readDictionary(const string& dictionaryFileName) {
     inputFile.close();
 }
 
+/**
+ * Compares two rules based on their left sides lexicographically.
+ * @param ruleA the first rule to be compared.
+ * @param ruleB the second rule to be compared.
+ * @return -1 if the first rule is less than the second rule lexicographically, 1 if the first rule is larger than
+ *          the second rule lexicographically, 0 if they are the same rule.
+ */
 bool ContextFreeGrammar::compareRuleLeft(Rule* ruleA, Rule* ruleB){
     return ruleA->getLeftHandSide().getName() <= ruleB->getLeftHandSide().getName();
 }
@@ -38,6 +50,13 @@ int ContextFreeGrammar::compareRuleLeft3Way(Rule* ruleA, Rule* ruleB) {
     }
 }
 
+/**
+ * Compares two rules based on their right sides lexicographically.
+ * @param ruleA the first rule to be compared.
+ * @param ruleB the second rule to be compared.
+ * @return -1 if the first rule is less than the second rule lexicographically, 1 if the first rule is larger than
+ *          the second rule lexicographically, 0 if they are the same rule.
+ */
 bool ContextFreeGrammar::compareRuleRight(Rule* ruleA, Rule* ruleB) {
     int i = 0;
     while (i < ruleA->getRightHandSideSize() && i < ruleB->getRightHandSideSize()){
@@ -82,6 +101,13 @@ int ContextFreeGrammar::compareRuleRight3Way(Rule* ruleA, Rule* ruleB) {
     }
 }
 
+/**
+ * Constructor for the ContextFreeGrammar class. Reads the rules from the rule file, lexicon rules from the
+ * dictionary file and sets the minimum frequency parameter.
+ * @param ruleFileName File name for the rule file.
+ * @param dictionaryFileName File name for the lexicon file.
+ * @param minCount Minimum frequency parameter.
+ */
 ContextFreeGrammar::ContextFreeGrammar(const string &ruleFileName,
                                        const string &dictionaryFileName,
                                        int minCount) {
@@ -102,6 +128,13 @@ ContextFreeGrammar::ContextFreeGrammar(const string &ruleFileName,
     this->minCount = minCount;
 }
 
+/**
+ * Another constructor for the ContextFreeGrammar class. Constructs the lexicon from the leaf nodes of the trees
+ * in the given treebank. Extracts rules from the non-leaf nodes of the trees in the given treebank. Also sets the
+ * minimum frequency parameter.
+ * @param treeBank Treebank containing the constituency trees.
+ * @param minCount Minimum frequency parameter.
+ */
 ContextFreeGrammar::ContextFreeGrammar(const TreeBank& treeBank, int minCount){
     constructDictionary(treeBank);
     for (int i = 0; i < treeBank.size(); i++){
@@ -113,6 +146,11 @@ ContextFreeGrammar::ContextFreeGrammar(const TreeBank& treeBank, int minCount){
     this->minCount = minCount;
 }
 
+/**
+ * Updates the types of the rules according to the number of symbols on the right hand side. Rule type is TERMINAL
+ * if the rule is like X -> a, SINGLE_NON_TERMINAL if the rule is like X -> Y, TWO_NON_TERMINAL if the rule is like
+ * X -> YZ, MULTIPLE_NON_TERMINAL if the rule is like X -> YZT...
+ */
 void ContextFreeGrammar::updateTypes(){
     unordered_set<string> nonTerminals;
     for (Rule* rule : rules){
@@ -135,6 +173,11 @@ void ContextFreeGrammar::updateTypes(){
     }
 }
 
+/**
+ * Constructs the lexicon from the given treebank. Reads each tree and for each leaf node in each tree puts the
+ * symbol in the dictionary.
+ * @param treeBank Treebank containing the constituency trees.
+ */
 void ContextFreeGrammar::constructDictionary(const TreeBank& treeBank){
     for (int i = 0; i < treeBank.size(); i++){
         ParseTree* parseTree = treeBank.get(i);
@@ -146,6 +189,17 @@ void ContextFreeGrammar::constructDictionary(const TreeBank& treeBank){
     }
 }
 
+/**
+ * Updates the exceptional symbols of the leaf nodes in the trees. Constituency trees consists of rare symbols and
+ * numbers, which are usually useless in creating constituency grammars. This is due to the fact that, numbers may
+ * not occur exactly the same both in the train and/or test set, although they have the same meaning in general.
+ * Similarly, when a symbol occurs in the test set but not in the training set, there will not be any rule covering
+ * that symbol and therefore no parse tree will be generated. For those reasons, the leaf nodes containing numerals
+ * are converted to the same terminal symbol, i.e. _num_; the leaf nodes containing rare symbols are converted to
+ * the same terminal symbol, i.e. _rare_.
+ * @param parseTree Parse tree to be updated.
+ * @param minCount Minimum frequency for the terminal symbols to be considered as rare.
+ */
 void ContextFreeGrammar::updateTree(ParseTree* parseTree, int _minCount){
     NodeCollector nodeCollector = NodeCollector(parseTree->getRoot(), new IsLeaf());
     vector<ParseNode*> leafList = nodeCollector.collect();
@@ -163,6 +217,16 @@ void ContextFreeGrammar::updateTree(ParseTree* parseTree, int _minCount){
     }
 }
 
+/**
+ * Updates the exceptional words in the sentences for which constituency parse trees will be generated. Constituency
+ * trees consist of rare symbols and numbers, which are usually useless in creating constituency grammars. This is
+ * due to the fact that, numbers may not occur exactly the same both in the train and/or test set, although they have
+ * the same meaning in general. Similarly, when a symbol occurs in the test set but not in the training set, there
+ * will not be any rule covering that symbol and therefore no parse tree will be generated. For those reasons, the
+ * words containing numerals are converted to the same terminal symbol, i.e. _num_; thewords containing rare symbols
+ * are converted to the same terminal symbol, i.e. _rare_.
+ * @param sentence Sentence to be updated.
+ */
 void ContextFreeGrammar::removeExceptionalWordsFromSentence(Sentence* sentence) const{
     regex pattern1 = regex("\\+?\\d+");
     regex pattern2 = regex("\\+?(\\d+)?\\.\\d*");
@@ -178,6 +242,14 @@ void ContextFreeGrammar::removeExceptionalWordsFromSentence(Sentence* sentence) 
     }
 }
 
+/**
+ * After constructing the constituency tree with a parser for a sentence, it contains exceptional words such as
+ * rare words and numbers, which are represented as _rare_ and _num_ symbols in the tree. Those words should be
+ * converted to their original forms. This method replaces the exceptional symbols to their original forms by
+ * replacing _rare_ and _num_ symbols.
+ * @param parseTree Parse tree to be updated.
+ * @param sentence Original sentence for which constituency tree is generated.
+ */
 void ContextFreeGrammar::reinsertExceptionalWordsFromSentence(ParseTree* parseTree, Sentence* sentence) const{
     NodeCollector nodeCollector = NodeCollector(parseTree->getRoot(), new IsLeaf());
     vector<ParseNode*> leafList = nodeCollector.collect();
@@ -191,6 +263,14 @@ void ContextFreeGrammar::reinsertExceptionalWordsFromSentence(ParseTree* parseTr
     }
 }
 
+/**
+ * Converts a parse node in a tree to a rule. The symbol in the parse node will be the symbol on the leaf side of the
+ * rule, the symbols in the child nodes will be the symbols on the right hand side of the rule.
+ * @param parseNode Parse node for which a rule will be created.
+ * @param trim If true, the tags will be trimmed. If the symbol's data contains '-' or '=', this method trims all
+ *             characters after those characters.
+ * @return A new rule constructed from a parse node and its children.
+ */
 Rule* ContextFreeGrammar::toRule(ParseNode* parseNode, bool trim){
     Symbol left;
     vector<Symbol> right;
@@ -209,6 +289,10 @@ Rule* ContextFreeGrammar::toRule(ParseNode* parseNode, bool trim){
     return new Rule(left, right);
 }
 
+/**
+ * Recursive method to generate all rules from a subtree rooted at the given node.
+ * @param parseNode Root node of the subtree.
+ */
 void ContextFreeGrammar::addRules(ParseNode *parseNode) {
     Rule* newRule;
     newRule = toRule(parseNode, true);
@@ -221,6 +305,14 @@ void ContextFreeGrammar::addRules(ParseNode *parseNode) {
     }
 }
 
+/**
+ * Searches the given rule from the rule list according to the given rule comparator.
+ * @param ruleList List of rules to search
+ * @param rule Rule to be searched
+ * @param compareRule Comparator function to compare two rules.
+ * @return Position of the rule, if the rule exists in the rule list. If the rule does not exist, it returns the
+ * position of the rule to be inserted.
+ */
 int ContextFreeGrammar::binarySearch(vector<Rule*> ruleList, Rule* rule, int compareRule(Rule* ruleA, Rule* ruleB)) const {
     int lo = 0;
     int hi = ruleList.size() - 1;
@@ -238,6 +330,10 @@ int ContextFreeGrammar::binarySearch(vector<Rule*> ruleList, Rule* rule, int com
     return -(lo + 1);
 }
 
+/**
+ * Inserts a new rule into the correct position in the sorted rules and rulesRightSorted array lists.
+ * @param newRule Rule to be inserted into the sorted array lists.
+ */
 void ContextFreeGrammar::addRule(Rule* newRule){
     int pos;
     pos = binarySearch(rules, newRule, compareRuleLeft3Way);
@@ -252,6 +348,10 @@ void ContextFreeGrammar::addRule(Rule* newRule){
     }
 }
 
+/**
+ * Removes a given rule from the sorted rules and rulesRightSorted array lists.
+ * @param rule Rule to be removed from the sorted array lists.
+ */
 void ContextFreeGrammar::removeRule(Rule* rule){
     int pos, posUp, posDown;
     pos = binarySearch(rules, rule, compareRuleLeft3Way);
@@ -277,7 +377,13 @@ void ContextFreeGrammar::removeRule(Rule* rule){
     }
 }
 
-/*Return rules such as X -> ... */
+/**
+ * Returns rules formed as X -> ... Since there can be more than one rule, which have X on the left side, the method
+ * first binary searches the rule to obtain the position of such a rule, then goes up and down to obtain others
+ * having X on the left side.
+ * @param X Left side of the rule
+ * @return Rules of the form X -> ...
+ */
 vector<Rule*> ContextFreeGrammar::getRulesWithLeftSideX(const Symbol& X){
     int middle, middleUp, middleDown;
     vector<Rule*> result;
@@ -298,7 +404,10 @@ vector<Rule*> ContextFreeGrammar::getRulesWithLeftSideX(const Symbol& X){
     return result;
 }
 
-/*Return symbols X from terminal rules such as X -> a */
+/**
+ * Returns all symbols X from terminal rules such as X -> a.
+ * @return All symbols X from terminal rules such as X -> a.
+ */
 vector<Symbol> ContextFreeGrammar::partOfSpeechTags() const{
     vector<Symbol> result;
     for (Rule* rule : rules) {
@@ -309,7 +418,10 @@ vector<Symbol> ContextFreeGrammar::partOfSpeechTags() const{
     return result;
 }
 
-/*Return symbols X from all rules such as X -> ... */
+/**
+ * Returns all symbols X from all rules such as X -> ...
+ * @return All symbols X from all rules such as X -> ...
+ */
 vector<Symbol> ContextFreeGrammar::getLeftSide() const{
     vector<Symbol> result;
     for (Rule* rule : rules) {
@@ -320,7 +432,12 @@ vector<Symbol> ContextFreeGrammar::getLeftSide() const{
     return result;
 }
 
-/*Return terminal rules such as X -> s*/
+/**
+ * Returns all rules with the given terminal symbol on the right hand side, that is it returns all terminal rules
+ * such as X -> s
+ * @param s Terminal symbol on the right hand side.
+ * @return All rules with the given terminal symbol on the right hand side
+ */
 vector<Rule*> ContextFreeGrammar::getTerminalRulesWithRightSideX(const Symbol& s) const{
     int middle, middleUp, middleDown;
     vector<Rule*> result;
@@ -345,7 +462,12 @@ vector<Rule*> ContextFreeGrammar::getTerminalRulesWithRightSideX(const Symbol& s
     return result;
 }
 
-/*Return terminal rules such as X -> S*/
+/**
+ * Returns all rules with the given non-terminal symbol on the right hand side, that is it returns all non-terminal
+ * rules such as X -> S
+ * @param S Non-terminal symbol on the right hand side.
+ * @return All rules with the given non-terminal symbol on the right hand side
+ */
 vector<Rule*> ContextFreeGrammar::getRulesWithRightSideX(const Symbol& S) const{
     int pos, posUp, posDown;
     vector<Rule*> result;
@@ -366,7 +488,13 @@ vector<Rule*> ContextFreeGrammar::getRulesWithRightSideX(const Symbol& S) const{
     return result;
 }
 
-/*Return rules such as X -> AB */
+/**
+ * Returns all rules with the given two non-terminal symbols on the right hand side, that is it returns all
+ * non-terminal rules such as X -> AB.
+ * @param A First non-terminal symbol on the right hand side.
+ * @param B Second non-terminal symbol on the right hand side.
+ * @return All rules with the given two non-terminal symbols on the right hand side
+ */
 vector<Rule*> ContextFreeGrammar::getRulesWithTwoNonTerminalsOnRightSide(const Symbol& A, const Symbol& B) const{
     int pos, posUp, posDown;
     vector<Rule*> result;
@@ -388,7 +516,13 @@ vector<Rule*> ContextFreeGrammar::getRulesWithTwoNonTerminalsOnRightSide(const S
     return result;
 }
 
-/*Return Y of the first rule such as X -> Y */
+/**
+ * Returns the symbol on the right side of the first rule with one non-terminal symbol on the right hand side, that
+ * is it returns S of the first rule such as X -> S. S should also not be in the given removed list.
+ * @param removedList Discarded list for symbol S.
+ * @return The symbol on the right side of the first rule with one non-terminal symbol on the right hand side. The
+ * symbol to be returned should also not be in the given discarded list.
+ */
 Symbol ContextFreeGrammar::getSingleNonTerminalCandidateToRemove(vector<Symbol> removedList) const{
     Symbol removeCandidate = Symbol("");
     for (Rule* rule:rules) {
@@ -400,7 +534,11 @@ Symbol ContextFreeGrammar::getSingleNonTerminalCandidateToRemove(vector<Symbol> 
     return removeCandidate;
 }
 
-/*Return the first rule such as X -> ABC... */
+/**
+ * Returns all rules with more than two non-terminal symbols on the right hand side, that is it returns all
+ * non-terminal rules such as X -> ABC...
+ * @return All rules with more than two non-terminal symbols on the right hand side.
+ */
 Rule* ContextFreeGrammar::getMultipleNonTerminalCandidateToUpdate() const{
     Rule* removeCandidate = nullptr;
     for (Rule* rule:rules) {
@@ -412,6 +550,11 @@ Rule* ContextFreeGrammar::getMultipleNonTerminalCandidateToUpdate() const{
     return removeCandidate;
 }
 
+/**
+ * In conversion to Chomsky Normal Form, rules like X -> Y are removed and new rules for every rule as Y -> beta are
+ * replaced with X -> beta. The method first identifies all X -> Y rules. For every such rule, all rules Y -> beta
+ * are identified. For every such rule, the method adds a new rule X -> beta. Every Y -> beta rule is then deleted.
+ */
 void ContextFreeGrammar::removeSingleNonTerminalFromRightHandSide(){
     vector<Symbol> nonTerminalList;
     Symbol removeCandidate;
@@ -436,6 +579,13 @@ void ContextFreeGrammar::removeSingleNonTerminalFromRightHandSide(){
     }
 }
 
+/**
+ * In conversion to Chomsky Normal Form, rules like A -> BC... are replaced with A -> X1... and X1 -> BC. This
+ * method replaces B and C non-terminals on the right hand side with X1 for all rules in the grammar.
+ * @param first Non-terminal symbol B.
+ * @param second Non-terminal symbol C.
+ * @param with Non-terminal symbol X1.
+ */
 void ContextFreeGrammar::updateAllMultipleNonTerminalWithNewRule(const Symbol& first, const Symbol& second, const Symbol& with){
     for (Rule* rule : rules) {
         if (rule->getRuleType() == RuleType::MULTIPLE_NON_TERMINAL){
@@ -444,6 +594,10 @@ void ContextFreeGrammar::updateAllMultipleNonTerminalWithNewRule(const Symbol& f
     }
 }
 
+/**
+ * In conversion to Chomsky Normal Form, rules like A -> BC... are replaced with A -> X1... and X1 -> BC. This
+ * method determines such rules and for every such rule, it adds new rule X1->BC and updates rule A->BC to A->X1.
+ */
 void ContextFreeGrammar::updateMultipleNonTerminalFromRightHandSide(){
     Rule* updateCandidate;
     int newVariableCount = 0;
@@ -460,6 +614,11 @@ void ContextFreeGrammar::updateMultipleNonTerminalFromRightHandSide(){
     }
 }
 
+/**
+ * The method converts the grammar into Chomsky normal form. First, rules like X -> Y are removed and new rules for
+ * every rule as Y -> beta are replaced with X -> beta. Second, rules like A -> BC... are replaced with A -> X1...
+ * and X1 -> BC.
+ */
 void ContextFreeGrammar::convertToChomskyNormalForm(){
     removeSingleNonTerminalFromRightHandSide();
     updateMultipleNonTerminalFromRightHandSide();
@@ -467,6 +626,11 @@ void ContextFreeGrammar::convertToChomskyNormalForm(){
     sort(rulesRightSorted.begin(), rulesRightSorted.end(), compareRuleRight);
 }
 
+/**
+ * Searches a given rule in the grammar.
+ * @param rule Rule to be searched.
+ * @return Rule if found, null otherwise.
+ */
 Rule* ContextFreeGrammar::searchRule(Rule* rule) const{
     int pos;
     pos = binarySearch(rules, rule, compareRuleLeft3Way);
@@ -477,6 +641,10 @@ Rule* ContextFreeGrammar::searchRule(Rule* rule) const{
     }
 }
 
+/**
+ * Returns number of rules in the grammar.
+ * @return Number of rules in the Context Free Grammar.
+ */
 int ContextFreeGrammar::size() const{
     return rules.size();
 }
