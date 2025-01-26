@@ -3,6 +3,7 @@
 //
 
 #include "Rule.h"
+#include "StringUtils.h"
 
 /**
  * Empty constructor for the rule class.
@@ -60,7 +61,7 @@ Rule::Rule(const string &ruleString) {
     string left = ruleString.substr(0, ruleString.find("->"));
     string right = ruleString.substr(ruleString.find("->") + 2);
     leftHandSide = Symbol(left);
-    vector<string> rightSide = Word::split(right, " ");
+    vector<string> rightSide = StringUtils::split(right, " ");
     for (const string& s : rightSide){
         rightHandSide.emplace_back(s);
     }

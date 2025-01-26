@@ -3,6 +3,7 @@
 //
 
 #include "ProbabilisticRule.h"
+#include <StringUtils.h>
 
 /**
  * Constructor for the rule X -> beta. beta is a string of symbols from symbols (non-terminal)
@@ -32,10 +33,10 @@ ProbabilisticRule::ProbabilisticRule(const Symbol &leftHandSide, const vector<Sy
  */
 ProbabilisticRule::ProbabilisticRule(const string& rule){
     string prob = rule.substr(rule.find('[') + 1, rule.find(']') - rule.find('[') - 1);
-    string left = Word::trim(rule.substr(0, rule.find("->")));
-    string right = Word::trim(rule.substr(rule.find("->") + 2, rule.find('[') - rule.find("->") - 2));
+    string left = StringUtils::trim(rule.substr(0, rule.find("->")));
+    string right = StringUtils::trim(rule.substr(rule.find("->") + 2, rule.find('[') - rule.find("->") - 2));
     leftHandSide = Symbol(left);
-    vector<string> rightSide = Word::split(right, " ");
+    vector<string> rightSide = StringUtils::split(right, " ");
     for (const string& s : rightSide){
         rightHandSide.emplace_back(s);
     }

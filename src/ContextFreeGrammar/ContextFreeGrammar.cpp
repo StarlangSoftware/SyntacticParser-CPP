@@ -4,6 +4,7 @@
 
 #include <regex>
 #include "ContextFreeGrammar.h"
+#include <StringUtils.h>
 #include "NodeCollector.h"
 #include "NodeCondition/IsLeaf.h"
 #include <unordered_set>
@@ -21,7 +22,7 @@ void ContextFreeGrammar::readDictionary(const string& dictionaryFileName) {
     inputFile.open(dictionaryFileName, ifstream :: in);
     while (inputFile.good()) {
         getline(inputFile, line);
-        vector<string> items = Word::split(line);
+        vector<string> items = StringUtils::split(line);
         dictionary.putNTimes(items[0], stoi(items[1]));
     }
     inputFile.close();
