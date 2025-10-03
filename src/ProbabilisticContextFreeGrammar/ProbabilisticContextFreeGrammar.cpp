@@ -3,6 +3,10 @@
 //
 
 #include "ProbabilisticContextFreeGrammar.h"
+
+#include <algorithm>
+#include <cmath>
+
 #include "ProbabilisticRule.h"
 
 /**

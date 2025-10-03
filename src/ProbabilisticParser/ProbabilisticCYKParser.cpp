@@ -3,6 +3,9 @@
 //
 
 #include "ProbabilisticCYKParser.h"
+
+#include <cmath>
+
 #include "../SyntacticParser/PartialParseList.h"
 
 /**
