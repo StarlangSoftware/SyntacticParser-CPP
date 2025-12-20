@@ -4,8 +4,6 @@
 
 #include "ProbabilisticCYKParser.h"
 
-#include <cmath>
-
 #include "../SyntacticParser/PartialParseList.h"
 
 /**
@@ -15,7 +13,7 @@
  * @param sentence Sentence to be parsed.
  * @return Array list of most probable parse trees for the given sentence.
  */
-vector<ParseTree*> ProbabilisticCYKParser::parse(const ProbabilisticContextFreeGrammar& pCfg, Sentence* sentence){
+vector<ParseTree*> ProbabilisticCYKParser::parse(const ProbabilisticContextFreeGrammar& pCfg, const Sentence* sentence){
     int i, j, k, x, y;
     PartialParseList table[sentence->wordCount()][sentence->wordCount()];
     ProbabilisticParseNode* leftNode, *rightNode;

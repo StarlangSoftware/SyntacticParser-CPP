@@ -16,8 +16,8 @@ public:
     PartialParseList() = default;
     void addPartialParse(ParseNode* parseNode);
     void updatePartialParse(ProbabilisticParseNode* parseNode);
-    ParseNode* getPartialParse(int index);
-    int size();
+    [[nodiscard]] ParseNode* getPartialParse(int index) const;
+    [[nodiscard]] int size() const;
 };
 
 

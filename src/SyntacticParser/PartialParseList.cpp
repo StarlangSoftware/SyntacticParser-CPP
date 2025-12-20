@@ -39,7 +39,7 @@ void PartialParseList::updatePartialParse(ProbabilisticParseNode* parseNode){
  * @param index Position of the parse node.
  * @return Parse node at the given position.
  */
-ParseNode* PartialParseList::getPartialParse(int index){
+ParseNode* PartialParseList::getPartialParse(int index) const {
     return partialParses[index];
 }
 
@@ -47,6 +47,6 @@ ParseNode* PartialParseList::getPartialParse(int index){
  * Returns size of the partial parse.
  * @return Size of the partial parse.
  */
-int PartialParseList::size(){
+int PartialParseList::size() const {
     return partialParses.size();
 }

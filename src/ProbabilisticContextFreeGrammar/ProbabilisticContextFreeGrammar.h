@@ -16,12 +16,12 @@ public:
                                     const string& dictionaryFileName,
                                     int minCount);
     ProbabilisticContextFreeGrammar(const TreeBank& treeBank, int minCount);
-    static ProbabilisticRule* toRule(ParseNode* parseNode, bool trim);
-    double probability(ParseTree* parseTree);
+    static ProbabilisticRule* toRule(const ParseNode* parseNode, bool trim);
+    double probability(const ParseTree* parseTree);
     void convertToChomskyNormalForm();
 private:
-    void addRules(ParseNode* parseNode);
-    double probability(ParseNode* parseNode);
+    void addRules(const ParseNode* parseNode);
+    double probability(const ParseNode* parseNode);
     void removeSingleNonTerminalFromRightHandSide();
     void updateMultipleNonTerminalFromRightHandSide();
 };

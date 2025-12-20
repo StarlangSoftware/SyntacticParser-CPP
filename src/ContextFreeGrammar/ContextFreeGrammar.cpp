@@ -35,11 +35,11 @@ void ContextFreeGrammar::readDictionary(const string& dictionaryFileName) {
  * @return -1 if the first rule is less than the second rule lexicographically, 1 if the first rule is larger than
  *          the second rule lexicographically, 0 if they are the same rule.
  */
-bool ContextFreeGrammar::compareRuleLeft(Rule* ruleA, Rule* ruleB){
+bool ContextFreeGrammar::compareRuleLeft(const Rule* ruleA, const Rule* ruleB){
     return ruleA->getLeftHandSide().getName() <= ruleB->getLeftHandSide().getName();
 }
 
-int ContextFreeGrammar::compareRuleLeft3Way(Rule* ruleA, Rule* ruleB) {
+int ContextFreeGrammar::compareRuleLeft3Way(const Rule* ruleA, const Rule* ruleB) {
     if (ruleA->getLeftHandSide() < ruleB->getLeftHandSide()){
         return -1;
     } else {
@@ -58,7 +58,7 @@ int ContextFreeGrammar::compareRuleLeft3Way(Rule* ruleA, Rule* ruleB) {
  * @return -1 if the first rule is less than the second rule lexicographically, 1 if the first rule is larger than
  *          the second rule lexicographically, 0 if they are the same rule.
  */
-bool ContextFreeGrammar::compareRuleRight(Rule* ruleA, Rule* ruleB) {
+bool ContextFreeGrammar::compareRuleRight(const Rule* ruleA, const Rule* ruleB) {
     int i = 0;
     while (i < ruleA->getRightHandSideSize() && i < ruleB->getRightHandSideSize()){
         if (ruleA->getRightHandSideAt(i) == ruleB->getRightHandSideAt(i)){
@@ -74,7 +74,7 @@ bool ContextFreeGrammar::compareRuleRight(Rule* ruleA, Rule* ruleB) {
     }
 }
 
-int ContextFreeGrammar::compareRuleRight3Way(Rule* ruleA, Rule* ruleB) {
+int ContextFreeGrammar::compareRuleRight3Way(const Rule* ruleA, const Rule* ruleB) {
     int i = 0;
     while (i < ruleA->getRightHandSideSize() && i < ruleB->getRightHandSideSize()){
         if (ruleA->getRightHandSideAt(i) == ruleB->getRightHandSideAt(i)){
@@ -122,8 +122,8 @@ ContextFreeGrammar::ContextFreeGrammar(const string &ruleFileName,
         rulesRightSorted.emplace_back(newRule);
     }
     inputFile.close();
-    sort(rules.begin(), rules.end(), compareRuleLeft);
-    sort(rulesRightSorted.begin(), rulesRightSorted.end(), compareRuleRight);
+    ranges::sort(rules, compareRuleLeft);
+    ranges::sort(rulesRightSorted, compareRuleRight);
     readDictionary(dictionaryFileName);
     updateTypes();
     this->minCount = minCount;
@@ -152,7 +152,7 @@ ContextFreeGrammar::ContextFreeGrammar(const TreeBank& treeBank, int minCount){
  * if the rule is like X -> a, SINGLE_NON_TERMINAL if the rule is like X -> Y, TWO_NON_TERMINAL if the rule is like
  * X -> YZ, MULTIPLE_NON_TERMINAL if the rule is like X -> YZT...
  */
-void ContextFreeGrammar::updateTypes(){
+void ContextFreeGrammar::updateTypes() const {
     unordered_set<string> nonTerminals;
     for (Rule* rule : rules){
         nonTerminals.emplace(rule->getLeftHandSide().getName());
@@ -199,13 +199,13 @@ void ContextFreeGrammar::constructDictionary(const TreeBank& treeBank){
  * are converted to the same terminal symbol, i.e. _num_; the leaf nodes containing rare symbols are converted to
  * the same terminal symbol, i.e. _rare_.
  * @param parseTree Parse tree to be updated.
- * @param minCount Minimum frequency for the terminal symbols to be considered as rare.
+ * @param _minCount Minimum frequency for the terminal symbols to be considered as rare.
  */
-void ContextFreeGrammar::updateTree(ParseTree* parseTree, int _minCount){
+void ContextFreeGrammar::updateTree(const ParseTree* parseTree, int _minCount) const {
     NodeCollector nodeCollector = NodeCollector(parseTree->getRoot(), new IsLeaf());
     vector<ParseNode*> leafList = nodeCollector.collect();
     regex pattern1 = regex("\\+?\\d+");
-    regex pattern2 = regex("\\+?(\\d+)?\\.\\d*");
+    regex pattern2 = regex(R"(\+?(\d+)?\.\d*)");
     for (ParseNode* parseNode : leafList){
         string data = parseNode->getData().getName();
         if (regex_match(data, pattern1) || (regex_match(data, pattern2) && data != ".")){
@@ -228,9 +228,9 @@ void ContextFreeGrammar::updateTree(ParseTree* parseTree, int _minCount){
  * are converted to the same terminal symbol, i.e. _rare_.
  * @param sentence Sentence to be updated.
  */
-void ContextFreeGrammar::removeExceptionalWordsFromSentence(Sentence* sentence) const{
+void ContextFreeGrammar::removeExceptionalWordsFromSentence(const Sentence* sentence) const{
     regex pattern1 = regex("\\+?\\d+");
-    regex pattern2 = regex("\\+?(\\d+)?\\.\\d*");
+    regex pattern2 = regex(R"(\+?(\d+)?\.\d*)");
     for (int i = 0; i < sentence->wordCount(); i++){
         Word* word = sentence->getWord(i);
         if (regex_match(word->getName(), pattern1) || (regex_match(word->getName(), pattern2) && word->getName() != ".")){
@@ -251,7 +251,7 @@ void ContextFreeGrammar::removeExceptionalWordsFromSentence(Sentence* sentence) 
  * @param parseTree Parse tree to be updated.
  * @param sentence Original sentence for which constituency tree is generated.
  */
-void ContextFreeGrammar::reinsertExceptionalWordsFromSentence(ParseTree* parseTree, Sentence* sentence) const{
+void ContextFreeGrammar::reinsertExceptionalWordsFromSentence(const ParseTree* parseTree, const Sentence* sentence) const{
     NodeCollector nodeCollector = NodeCollector(parseTree->getRoot(), new IsLeaf());
     vector<ParseNode*> leafList = nodeCollector.collect();
     for (int i = 0; i < leafList.size(); i++){
@@ -272,7 +272,7 @@ void ContextFreeGrammar::reinsertExceptionalWordsFromSentence(ParseTree* parseTr
  *             characters after those characters.
  * @return A new rule constructed from a parse node and its children.
  */
-Rule* ContextFreeGrammar::toRule(ParseNode* parseNode, bool trim){
+Rule* ContextFreeGrammar::toRule(const ParseNode* parseNode, bool trim){
     Symbol left;
     vector<Symbol> right;
     if (trim)
@@ -294,7 +294,7 @@ Rule* ContextFreeGrammar::toRule(ParseNode* parseNode, bool trim){
  * Recursive method to generate all rules from a subtree rooted at the given node.
  * @param parseNode Root node of the subtree.
  */
-void ContextFreeGrammar::addRules(ParseNode *parseNode) {
+void ContextFreeGrammar::addRules(const ParseNode *parseNode) {
     Rule* newRule;
     newRule = toRule(parseNode, true);
     addRule(newRule);
@@ -314,7 +314,7 @@ void ContextFreeGrammar::addRules(ParseNode *parseNode) {
  * @return Position of the rule, if the rule exists in the rule list. If the rule does not exist, it returns the
  * position of the rule to be inserted.
  */
-int ContextFreeGrammar::binarySearch(vector<Rule*> ruleList, Rule* rule, int compareRule(Rule* ruleA, Rule* ruleB)) const {
+int ContextFreeGrammar::binarySearch(const vector<Rule*> &ruleList, const Rule* rule, int compareRule(const Rule* ruleA, const Rule* ruleB)) const {
     int lo = 0;
     int hi = ruleList.size() - 1;
     while (lo <= hi){
@@ -412,7 +412,7 @@ vector<Rule*> ContextFreeGrammar::getRulesWithLeftSideX(const Symbol& X){
 vector<Symbol> ContextFreeGrammar::partOfSpeechTags() const{
     vector<Symbol> result;
     for (Rule* rule : rules) {
-        if (rule->getRuleType() == RuleType::TERMINAL && find(result.begin(), result.end(), rule->getLeftHandSide()) == result.end()) {
+        if (rule->getRuleType() == RuleType::TERMINAL && ranges::find(result, rule->getLeftHandSide()) == result.end()) {
             result.emplace_back(rule->getLeftHandSide());
         }
     }
@@ -426,7 +426,7 @@ vector<Symbol> ContextFreeGrammar::partOfSpeechTags() const{
 vector<Symbol> ContextFreeGrammar::getLeftSide() const{
     vector<Symbol> result;
     for (Rule* rule : rules) {
-        if (find(result.begin(), result.end(), rule->getLeftHandSide()) == result.end()) {
+        if (ranges::find(result, rule->getLeftHandSide()) == result.end()) {
             result.emplace_back(rule->getLeftHandSide());
         }
     }
@@ -527,7 +527,7 @@ vector<Rule*> ContextFreeGrammar::getRulesWithTwoNonTerminalsOnRightSide(const S
 Symbol ContextFreeGrammar::getSingleNonTerminalCandidateToRemove(vector<Symbol> removedList) const{
     Symbol removeCandidate = Symbol("");
     for (Rule* rule:rules) {
-        if (rule->getRuleType() == RuleType::SINGLE_NON_TERMINAL && !rule->leftRecursive() && find(removedList.begin(), removedList.end(), rule->getRightHandSideAt(0)) == removedList.end()) {
+        if (rule->getRuleType() == RuleType::SINGLE_NON_TERMINAL && !rule->leftRecursive() && ranges::find(removedList, rule->getRightHandSideAt(0)) == removedList.end()) {
             removeCandidate = rule->getRightHandSideAt(0);
             break;
         }
@@ -587,7 +587,7 @@ void ContextFreeGrammar::removeSingleNonTerminalFromRightHandSide(){
  * @param second Non-terminal symbol C.
  * @param with Non-terminal symbol X1.
  */
-void ContextFreeGrammar::updateAllMultipleNonTerminalWithNewRule(const Symbol& first, const Symbol& second, const Symbol& with){
+void ContextFreeGrammar::updateAllMultipleNonTerminalWithNewRule(const Symbol& first, const Symbol& second, const Symbol& with) const {
     for (Rule* rule : rules) {
         if (rule->getRuleType() == RuleType::MULTIPLE_NON_TERMINAL){
             rule->updateMultipleNonTerminal(first, second, with);
@@ -623,8 +623,8 @@ void ContextFreeGrammar::updateMultipleNonTerminalFromRightHandSide(){
 void ContextFreeGrammar::convertToChomskyNormalForm(){
     removeSingleNonTerminalFromRightHandSide();
     updateMultipleNonTerminalFromRightHandSide();
-    sort(rules.begin(), rules.end(), compareRuleLeft);
-    sort(rulesRightSorted.begin(), rulesRightSorted.end(), compareRuleRight);
+    ranges::sort(rules, compareRuleLeft);
+    ranges::sort(rulesRightSorted, compareRuleRight);
 }
 
 /**
@@ -632,7 +632,7 @@ void ContextFreeGrammar::convertToChomskyNormalForm(){
  * @param rule Rule to be searched.
  * @return Rule if found, null otherwise.
  */
-Rule* ContextFreeGrammar::searchRule(Rule* rule) const{
+Rule* ContextFreeGrammar::searchRule(const Rule* rule) const{
     int pos;
     pos = binarySearch(rules, rule, compareRuleLeft3Way);
     if (pos >= 0){

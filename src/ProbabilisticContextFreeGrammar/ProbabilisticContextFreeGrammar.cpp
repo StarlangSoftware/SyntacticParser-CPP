@@ -5,7 +5,6 @@
 #include "ProbabilisticContextFreeGrammar.h"
 
 #include <algorithm>
-#include <cmath>
 
 #include "ProbabilisticRule.h"
 
@@ -29,8 +28,8 @@ ProbabilisticContextFreeGrammar::ProbabilisticContextFreeGrammar(const string& r
         rulesRightSorted.emplace_back(newRule);
     }
     inputFile.close();
-    sort(rules.begin(), rules.end(), compareRuleLeft);
-    sort(rulesRightSorted.begin(), rulesRightSorted.end(), compareRuleRight);
+    ranges::sort(rules, compareRuleLeft);
+    ranges::sort(rulesRightSorted, compareRuleRight);
     readDictionary(dictionaryFileName);
     updateTypes();
     this->minCount = minCount;
@@ -76,7 +75,7 @@ ProbabilisticContextFreeGrammar::ProbabilisticContextFreeGrammar(const TreeBank&
  *             characters after those characters.
  * @return A new rule constructed from a parse node and its children.
  */
-ProbabilisticRule* ProbabilisticContextFreeGrammar::toRule(ParseNode* parseNode, bool trim){
+ProbabilisticRule* ProbabilisticContextFreeGrammar::toRule(const ParseNode* parseNode, bool trim){
     Symbol left;
     vector<Symbol> right;
     if (trim)
@@ -98,7 +97,7 @@ ProbabilisticRule* ProbabilisticContextFreeGrammar::toRule(ParseNode* parseNode,
  * Recursive method to generate all rules from a subtree rooted at the given node.
  * @param parseNode Root node of the subtree.
  */
-void ProbabilisticContextFreeGrammar::addRules(ParseNode* parseNode){
+void ProbabilisticContextFreeGrammar::addRules(const ParseNode* parseNode){
     Rule* existedRule;
     ProbabilisticRule* newRule;
     newRule = toRule(parseNode, true);
@@ -122,7 +121,7 @@ void ProbabilisticContextFreeGrammar::addRules(ParseNode* parseNode){
  * @param parseNode Parse node for which probability is calculated.
  * @return Probability of a parse node.
  */
-double ProbabilisticContextFreeGrammar::probability(ParseNode* parseNode){
+double ProbabilisticContextFreeGrammar::probability(const ParseNode* parseNode){
     Rule* existedRule;
     ProbabilisticRule* rule;
     double sum = 0.0;
@@ -145,7 +144,7 @@ double ProbabilisticContextFreeGrammar::probability(ParseNode* parseNode){
  * @param parseTree Parse tree for which probability is calculated.
  * @return Probability of the parse tree.
  */
-double ProbabilisticContextFreeGrammar::probability(ParseTree* parseTree){
+double ProbabilisticContextFreeGrammar::probability(const ParseTree* parseTree){
     return probability(parseTree->getRoot());
 }
 
@@ -211,6 +210,6 @@ void ProbabilisticContextFreeGrammar::updateMultipleNonTerminalFromRightHandSide
 void ProbabilisticContextFreeGrammar::convertToChomskyNormalForm(){
     removeSingleNonTerminalFromRightHandSide();
     updateMultipleNonTerminalFromRightHandSide();
-    sort(rules.begin(), rules.end(), compareRuleLeft);
-    sort(rulesRightSorted.begin(), rulesRightSorted.end(), compareRuleRight);
+    ranges::sort(rules, compareRuleLeft);
+    ranges::sort(rulesRightSorted, compareRuleRight);
 }

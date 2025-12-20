@@ -55,7 +55,7 @@ Rule::Rule(const Symbol& leftHandSide, const vector<Symbol> &rightHandSide, Rule
 /**
  * Constructor for any rule from a string. The string is of the form X -> .... The method constructs left hand
  * side symbol and right hand side symbol(s) from the input string.
- * @param rule String containing the rule. The string is of the form X -> ....
+ * @param ruleString String containing the rule. The string is of the form X -> ....
  */
 Rule::Rule(const string &ruleString) {
     string left = ruleString.substr(0, ruleString.find("->"));

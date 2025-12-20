@@ -14,7 +14,7 @@ public:
     ProbabilisticParseNode(ParseNode* left, ParseNode* right, const Symbol& data, double logProbability);
     ProbabilisticParseNode(ParseNode* left, const Symbol& data, double logProbability);
     ProbabilisticParseNode(const Symbol& data, double logProbability);
-    double getLogProbability();
+    [[nodiscard]] double getLogProbability() const;
 };
 
 #endif //SYNTACTICPARSER_PROBABILISTICPARSENODE_H

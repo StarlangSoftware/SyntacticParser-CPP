@@ -38,6 +38,6 @@ ProbabilisticParseNode::ProbabilisticParseNode(const Symbol &data, double logPro
  * Accessor for the logProbability attribute.
  * @return logProbability attribute.
  */
-double ProbabilisticParseNode::getLogProbability() {
+double ProbabilisticParseNode::getLogProbability() const {
     return logProbability;
 }

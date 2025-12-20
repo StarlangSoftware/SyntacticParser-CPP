@@ -10,7 +10,7 @@
 
 class ProbabilisticCYKParser : public ProbabilisticParser{
 public:
-    vector<ParseTree*> parse(const ProbabilisticContextFreeGrammar& pCfg, Sentence* sentence);
+    vector<ParseTree*> parse(const ProbabilisticContextFreeGrammar& pCfg, const Sentence* sentence);
 };
 
 

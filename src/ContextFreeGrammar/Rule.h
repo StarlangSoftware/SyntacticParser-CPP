@@ -22,13 +22,13 @@ public:
     Rule(const Symbol& leftHandSide, const vector<Symbol>& rightHandSide);
     Rule(const Symbol& leftHandSide, const vector<Symbol>& rightHandSide, RuleType type);
     explicit Rule(const string& ruleString);
-    bool leftRecursive() const;
-    RuleType getRuleType() const;
-    Symbol getLeftHandSide() const;
-    vector<Symbol> getRightHandSide() const;
-    int getRightHandSideSize() const;
-    Symbol getRightHandSideAt(int index) const;
-    string to_string() const;
+    [[nodiscard]] bool leftRecursive() const;
+    [[nodiscard]] RuleType getRuleType() const;
+    [[nodiscard]] Symbol getLeftHandSide() const;
+    [[nodiscard]] vector<Symbol> getRightHandSide() const;
+    [[nodiscard]] int getRightHandSideSize() const;
+    [[nodiscard]] Symbol getRightHandSideAt(int index) const;
+    [[nodiscard]] string to_string() const;
     void setType(RuleType ruleType);
     bool updateMultipleNonTerminal(const Symbol& first, const Symbol& second, const Symbol& with);
     bool operator==(const Rule &anotherRule) const{

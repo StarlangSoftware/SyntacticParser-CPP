@@ -16,11 +16,11 @@ public:
     ProbabilisticRule(const Symbol& leftHandSide, const vector<Symbol>& rightHandSide);
     ProbabilisticRule(const Symbol& leftHandSide, const vector<Symbol>& rightHandSide, RuleType type, double probability);
     explicit ProbabilisticRule(const string& rule);
-    double getProbability() const;
+    [[nodiscard]] double getProbability() const;
     void increment();
     void normalizeProbability(int total);
-    int getCount() const;
-    string to_string() const;
+    [[nodiscard]] int getCount() const;
+    [[nodiscard]] string to_string() const;
 };
 
 
